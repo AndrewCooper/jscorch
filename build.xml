@@ -1,0 +1,67 @@
+<project name="jScorch" default="compile" basedir=".">
+	<description>
+		Build file for jScorch: Scorched Earth for Java
+	</description>
+	<!-- set global properties for this build -->
+	<property name="project" value="jscorch"/>
+	<property name="main-class" value="jscorch.jScorch"/>
+	<property name="package" value="jscorch"/>
+	<property name="src" location="src"/>
+	<property name="images" value="${package}/images"/>
+	<property name="doc" location="doc"/>
+	<property name="jars" location="jars"/>
+	<property name="build" location="classes"/>
+	<property name="releases"  location="releases"/>
+
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp/>
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}"/>
+	</target>
+
+	<target name="compile" depends="init" description="compile the source">
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac srcdir="${src}" destdir="${build}"/>
+		<copy todir="${build}/${images}">
+			<fileset dir="${src}/${images}" excludes="CVS/**"/>
+		</copy>
+		<copy tofile="${build}/${package}/LICENSE" file="${src}/LICENSE"/>
+	</target>
+
+	<target name="docs" depends="compile" description="generate the javadoc files">
+		<!-- Run javadoc for the most up-to-date documentation -->
+		<mkdir dir="${doc}"/>
+		<javadoc sourcepath="${src}" packagenames="${package}"  destdir="${doc}" />
+	</target>
+
+	<target name="jarpackage" depends="compile" description="jar file packaging">
+		<!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+		<mkdir dir="${jars}"/>
+		<jar jarfile="${jars}/${project}-${DSTAMP}.jar" basedir="${build}">
+ 			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+				<attribute name="Main-Class" value="${main-class}"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="dist" depends="compile,docs,jarpackage" description="generate the distribution" >
+		<!-- Create the distribution directory -->
+		<mkdir dir="${releases}"/>
+		<zip destfile="${releases}/${project}-${DSTAMP}.zip" >
+			<zipfileset dir="${doc}" prefix="apidocs"/>
+			<zipfileset dir="${src}" includes="ReadMe.pdf"/>
+			<zipfileset dir="${jars}" includes="${project}-${DSTAMP}.jar"/>
+			<zipfileset dir="${src}" includes="LICENSE"/>
+			<zipfileset dir="${src}" prefix="src" excludes="CVS/**"/>
+		</zip>
+	</target>
+
+	<target name="clean" description="clean up" >
+		<!-- Delete the ${build} and ${dist} directory trees -->
+		<delete dir="${build}"/>
+		<delete dir="${doc}"/>
+		<delete dir="${jars}"/>
+	</target>
+</project>
